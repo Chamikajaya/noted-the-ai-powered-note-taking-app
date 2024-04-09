@@ -7,8 +7,7 @@ import {Input} from "@/components/ui/input";
 import {Textarea} from "@/components/ui/textarea";
 import LoadingButton from "@/components/ui/loadingButton";
 import {useRouter} from "next/navigation";
-import {toast, Toaster} from "sonner";
-
+import {toast} from "sonner";
 
 
 interface AddNotesModalProps {
@@ -45,13 +44,15 @@ export default function AddNotesModal({isOpen, setIsOpen}: AddNotesModalProps) {
             form.reset();
 
             router.refresh();  // * Refresh the current route. Making a new request to the server, re-fetching data requests, and re-rendering Server Components. (otherwise the newly submitted note will not be shown in the notes page)
+
             setIsOpen(false);  // close the modal
+
             toast.success("Note created successfully");
 
 
         } catch (e) {
             console.error(e)
-            toast.error("An error occurred while creating the note");
+            toast.error("An error occurred while creating the note. Please try again later.");
         }
     }
 
@@ -79,7 +80,7 @@ export default function AddNotesModal({isOpen, setIsOpen}: AddNotesModalProps) {
                             <FormMessage/> {/* This will show the error message  */}
                         </FormItem>)}/>
                         <DialogFooter>
-                            <LoadingButton type="submit" loading={form.formState.isSubmitting} >Submit</LoadingButton>
+                            <LoadingButton type="submit" loading={form.formState.isSubmitting}>Submit</LoadingButton>
                         </DialogFooter>
                     </form>
                 </Form>

@@ -2,6 +2,7 @@ import {Metadata} from "next";
 import {auth} from "@clerk/nextjs";
 import prisma from "@/lib/db/prisma";
 import {Toaster} from "sonner";
+import NoteCard from "@/components/NoteCard";
 
 
 export const metadata: Metadata = {
@@ -23,8 +24,11 @@ export default async function NotesPage() {
 
     return (
         <>
-            <div>
-                {JSON.stringify(allNotesOfThisUser)}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {allNotesOfThisUser.map(note => (
+                    <NoteCard key={note.id} note={note}/>
+                ))}
+                {allNotesOfThisUser.length === 0 && <p className="text-center col-span-full font-semibold text-xl">It is empty here. Create your first note by adding thr button above😊</p>}
             </div>
             <Toaster richColors/>
         </>
