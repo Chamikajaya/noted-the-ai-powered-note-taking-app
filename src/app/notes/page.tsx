@@ -1,6 +1,7 @@
 import {Metadata} from "next";
 import {auth} from "@clerk/nextjs";
 import prisma from "@/lib/db/prisma";
+import {Toaster} from "sonner";
 
 
 export const metadata: Metadata = {
@@ -21,9 +22,12 @@ export default async function NotesPage() {
 
 
     return (
-        <div>
-            {JSON.stringify(allNotesOfThisUser)}
+        <>
+            <div>
+                {JSON.stringify(allNotesOfThisUser)}
+            </div>
+            <Toaster richColors/>
+        </>
 
-        </div>
     );
 }

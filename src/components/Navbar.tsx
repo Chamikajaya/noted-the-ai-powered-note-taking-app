@@ -23,9 +23,9 @@ export default function Navbar() {
                         <Image src={logo} alt="Site Logo" width={80} height={10}/>
                         <span className="text-2xl font-bold tracking-tight">Noted</span>
                     </Link>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-5">
                         <UserButton afterSignOutUrl="/" appearance={{
-                            elements: {avatarBox: {width: "2rem", height: "2rem"}},
+                            elements: {avatarBox: {width: "2.5rem", height: "2.5rem"}},
                         }}/>
                         <Button onClick={() => setShowAddNoteModal(true)} >
                             <Plus className="mr-2" size={16}/>
