@@ -4,6 +4,8 @@
 import {createNoteSchema, updateNoteSchema, deleteNoteSchema} from "@/lib/validation/note";
 import {auth} from "@clerk/nextjs";
 import prisma from "@/lib/db/prisma";
+import {getEmbedding} from "@/lib/openAI";
+import {notesIndex} from "@/lib/db/pinecone";
 
 
 export async function POST(req: Request) {
@@ -28,14 +30,36 @@ export async function POST(req: Request) {
             return Response.json({error: "Unauthorized"}, {status: 401})
         }
 
-        // create a note in the database
-        const note = await prisma.notes.create({
-            data: {
-                title,
-                content,
-                userId,
-            },
-        });
+        const noteEmbedding = await generateEmbeddingForNote(title, content);  // generate the embedding for the note
+
+        /*
+        Transaction ==>  Transaction is a way to group multiple operations into a single unit of work. If any operation fails, the whole transaction fails. We want the note to create on postgres only if the embedding is created successfully. If the embedding creation fails, we don't want to create the note. Vice versa, if the embedding creation fails, we don't want to create the note either.
+
+         */
+
+        const note = await prisma.$transaction(async (tx) => {
+
+            // 1) create the note in the Postgres database
+            const note = await tx.notes.create({
+                data: {
+                    title,
+                    content,
+                    userId,
+                },
+            });
+
+            // 2) create the embedding in the Pinecone database
+            await notesIndex.upsert([
+                {
+                    id: note.id.toString(),  // convert the id to string coz pinecone only accepts string as id
+                    values: noteEmbedding,
+                    metadata: {userId}  // so that we can filter the embeddings by the userID to get the notes of the user
+                }
+            ]);
+
+            return note;
+        })
+
 
         return Response.json({note}, {status: 201})  // return the note to the client, 201 is for created
 
@@ -76,16 +100,32 @@ export async function PUT(req: Request) {
             return Response.json({error: "Unauthorized"}, {status: 401})
         }
 
-        // update the note in the database
-        const updatedNote = await prisma.notes.update({
-            where: {
-                id
-            },
-            data: {
-                title,
-                content
-            }
-        });
+        const noteEmbedding = await generateEmbeddingForNote(title, content);  // generate the embedding for the note
+
+        const updatedNote = await prisma.$transaction(async (tx) => {
+
+            // 1) update the note in the Postgres database
+            const updatedNote = await tx.notes.update({
+                where: {
+                    id
+                },
+                data: {
+                    title,
+                    content
+                }
+            });
+
+            // 2) update the embedding in the Pinecone database
+            await notesIndex.upsert([
+                {
+                    id: updatedNote.id.toString(),
+                    values: noteEmbedding,
+                    metadata: {userId}  // so that we can filter the embeddings by the userID to get the notes of the user
+                }
+            ]);
+
+            return updatedNote;
+        })
 
         return Response.json({note: updatedNote}, {status: 200})  // return the updated note to the client
 
@@ -125,11 +165,17 @@ export async function DELETE(req: Request) {
             return Response.json({error: "Unauthorized"}, {status: 401})
         }
 
-        // delete the note from the database
-        await prisma.notes.delete({
-            where: {
-                id
-            }
+        await prisma.$transaction(async (tx) => {
+
+            // delete the note from the postgres database
+            await tx.notes.delete({
+                where: {
+                    id
+                }
+            });
+        // delete the note from the pinecone database
+            await notesIndex.deleteOne(id.toString());
+
         });
 
         return Response.json({message: "Note deleted successfully"}, {status: 200})  // return the success message to the client
@@ -138,4 +184,10 @@ export async function DELETE(req: Request) {
         console.error(e);  // log the error to the console
         return Response.json({error: "Internal Server Error"}, {status: 500})  // return the error to the client
     }
+}
+
+
+async function generateEmbeddingForNote(title: string, content: string | undefined) {
+
+    return getEmbedding(title + "\n\n" + content ?? " ");  // if content is not provided, use an empty string (?? is nullish coalescing operator)
 }

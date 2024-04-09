@@ -19,8 +19,8 @@ export default async function NotesPage() {
         where: {
             userId
         },
-        orderBy: {  // order the notes by createdAt in descending order , otherwise when a user updates a note it will get rendered at the end of the list. This way since we are rendering the list in descending order, the updated note will be where it initially was
-            createdAt: "desc"
+        orderBy: {  // order the notes by createdAt in asc order , otherwise when a user updates a note it will get rendered at the end of the list. This way since we are rendering the list in asc order, the updated note will be where it initially was
+            createdAt: "asc"
         }
     });
 
