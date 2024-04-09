@@ -1,7 +1,10 @@
 // api/notes
+
+
 import {createNoteSchema, updateNoteSchema, deleteNoteSchema} from "@/lib/validation/note";
 import {auth} from "@clerk/nextjs";
 import prisma from "@/lib/db/prisma";
+
 
 export async function POST(req: Request) {
     try {
@@ -91,7 +94,6 @@ export async function PUT(req: Request) {
         return Response.json({error: "Internal Server Error"}, {status: 500})  // return the error to the client
     }
 }
-
 
 export async function DELETE(req: Request) {
     try {

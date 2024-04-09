@@ -18,6 +18,9 @@ export default async function NotesPage() {
     const allNotesOfThisUser = await prisma.notes.findMany({
         where: {
             userId
+        },
+        orderBy: {  // order the notes by createdAt in descending order , otherwise when a user updates a note it will get rendered at the end of the list. This way since we are rendering the list in descending order, the updated note will be where it initially was
+            createdAt: "desc"
         }
     });
 
@@ -28,7 +31,9 @@ export default async function NotesPage() {
                 {allNotesOfThisUser.map(note => (
                     <NoteCard key={note.id} note={note}/>
                 ))}
-                {allNotesOfThisUser.length === 0 && <p className="text-center col-span-full font-semibold text-xl">It is empty here. Create your first note by adding thr button above😊</p>}
+                {allNotesOfThisUser.length === 0 &&
+                    <p className="text-center col-span-full font-semibold text-xl">It is empty here. Create your first
+                        note by adding thr button above😊</p>}
             </div>
             <Toaster richColors/>
         </>

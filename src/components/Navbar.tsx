@@ -6,7 +6,7 @@ import logo from "@/assets/logo.png"
 import {UserButton} from "@clerk/nextjs";
 import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
-import AddNotesModal from "@/components/AddNotesModal";
+import AddNotesModal from "@/components/AddOrEditNotesMonal";
 import {useState} from "react";
 
 
