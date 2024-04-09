@@ -8,12 +8,16 @@ import {Button} from "@/components/ui/button";
 import {Plus} from "lucide-react";
 import AddNotesModal from "@/components/AddOrEditNotesMonal";
 import {useState} from "react";
+import ThemeToggleButton from "@/components/ThemeToggleButton";
+import {dark} from "@clerk/themes";
+import {useTheme} from "next-themes";
 
 
 
 export default function Navbar() {
 
     const [showAddNoteModal, setShowAddNoteModal] = useState(false)
+    const {theme} = useTheme();
 
     return (
         <>
@@ -25,8 +29,10 @@ export default function Navbar() {
                     </Link>
                     <div className="flex items-center gap-5">
                         <UserButton afterSignOutUrl="/" appearance={{
+                            baseTheme:theme === "dark" ? dark : undefined,
                             elements: {avatarBox: {width: "2.5rem", height: "2.5rem"}},
                         }}/>
+                        <ThemeToggleButton/>
                         <Button onClick={() => setShowAddNoteModal(true)} >
                             <Plus className="mr-2" size={16}/>
                             <span className="font-semibold"> Create a note</span>
