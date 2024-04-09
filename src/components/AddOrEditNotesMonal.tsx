@@ -1,3 +1,5 @@
+"use client";
+
 import {useForm} from "react-hook-form";
 import {createNoteSchema, CreateNoteSchema} from "@/lib/validation/note";
 import {zodResolver} from "@hookform/resolvers/zod";
@@ -9,6 +11,7 @@ import LoadingButton from "@/components/ui/loadingButton";
 import {useRouter} from "next/navigation";
 import {toast} from "sonner";
 import {Notes} from "@prisma/client";
+import {useState} from "react";
 
 
 interface AddOrEditNotesModalProps {
@@ -21,6 +24,8 @@ interface AddOrEditNotesModalProps {
 export default function AddOrEditNotes({isOpen, setIsOpen, noteToEdit}: AddOrEditNotesModalProps) {
 
     const router = useRouter();
+
+    const [isDeleting, setIsDeleting] = useState(false);
 
 
     // defining the form -> https://ui.shadcn.com/docs/components/form
@@ -77,6 +82,35 @@ export default function AddOrEditNotes({isOpen, setIsOpen, noteToEdit}: AddOrEdi
         }
     }
 
+    async function deleteNote() {
+
+        try {
+            if (!noteToEdit) return;  // if there is no note, simply return
+            setIsDeleting(true);
+
+            const response = await fetch("/api/notes", {
+                method: "DELETE",
+                body: JSON.stringify({id: noteToEdit.id}),  // send the id of the note to be deleted
+            })
+
+            if (!response.ok) {
+                throw new Error("An error occurred while deleting the note, status code: " + response.status)
+            }
+            toast.success("Note deleted successfully.")
+            router.refresh()
+            setIsOpen(false)
+
+
+        } catch (e) {
+            console.error(e)
+            toast.error("An error occurred while deleting the note. Please try again later.");
+        } finally {
+            setIsDeleting(false);
+        }
+
+
+    }
+
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}> {/* open and onOpenChange are default prop names by shadcn */}
             <DialogContent>
@@ -85,6 +119,7 @@ export default function AddOrEditNotes({isOpen, setIsOpen, noteToEdit}: AddOrEdi
                         className="text-center font-semibold">{noteToEdit ? "Update Note" : "Add Note"}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
+
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
                         <FormField control={form.control} name="title" render={({field}) => (<FormItem>
                             <FormLabel>Title</FormLabel>
@@ -101,8 +136,21 @@ export default function AddOrEditNotes({isOpen, setIsOpen, noteToEdit}: AddOrEdi
                             </FormControl>
                             <FormMessage/> {/* This will show the error message  */}
                         </FormItem>)}/>
-                        <DialogFooter>
-                            <LoadingButton type="submit" loading={form.formState.isSubmitting}>Submit</LoadingButton>
+                        <DialogFooter className="gap-2">
+                            <LoadingButton
+                                type="submit"
+                                loading={form.formState.isSubmitting}
+                                disabled={isDeleting}>Submit</LoadingButton>
+                            {noteToEdit && (
+                                <LoadingButton
+                                    loading={isDeleting}
+                                    variant="destructive"
+                                    disabled={form.formState.isSubmitting}
+                                    onClick={deleteNote}
+                                    type="button"
+                                >Delete</LoadingButton>
+
+                            )}
                         </DialogFooter>
                     </form>
                 </Form>
