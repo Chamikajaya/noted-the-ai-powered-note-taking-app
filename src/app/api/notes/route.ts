@@ -187,7 +187,7 @@ export async function DELETE(req: Request) {
 }
 
 
-async function generateEmbeddingForNote(title: string, content: string | undefined) {
+export async function generateEmbeddingForNote(title: string, content: string | undefined) {
 
     return getEmbedding(title + "\n\n" + content ?? " ");  // if content is not provided, use an empty string (?? is nullish coalescing operator)
 }
