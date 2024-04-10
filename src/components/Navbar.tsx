@@ -11,6 +11,7 @@ import {useState} from "react";
 import ThemeToggleButton from "@/components/ThemeToggleButton";
 import {dark} from "@clerk/themes";
 import {useTheme} from "next-themes";
+import ChatbotModalButton from "@/components/ui/chatbotModalButton";
 
 
 
@@ -37,6 +38,7 @@ export default function Navbar() {
                             <Plus className="mr-2" size={16}/>
                             <span className="font-semibold"> Create a note</span>
                         </Button>
+                        <ChatbotModalButton/>
                     </div>
                 </div>
             </div>
